@@ -118,6 +118,26 @@ var _ = Describe("given OrgManager", func() {
 			Expect(orgGUID).To(Equal("test2-guid"))
 			Expect(orgRequest.Name).To(Equal("new-org"))
 		})
+
+		FWhen("the orgs.yml orgs list cannot be fetched", func() {
+			It("errors", func() {
+				fakeReader.OrgsReturns(nil, fmt.Errorf("some error"))
+				err := orgManager.CreateOrgs()
+				Expect(err).Should(HaveOccurred())
+			})
+		})
+
+		FWhen("an org exists in an orgConfig, but not in orgs.yml", func() {
+			It("errors", func() {
+				fakeReader.GetOrgConfigsReturns([]config.OrgConfig{
+					config.OrgConfig{Org: "test"},
+					config.OrgConfig{Org: "new-org", OriginalOrg: "test2"},
+				}, nil)
+				fakeReader.OrgsReturns(&config.Orgs{
+					Orgs: []string{},
+				}, nil)
+			})
+		})
 	})
 
 	Context("DeleteOrgs()", func() {
